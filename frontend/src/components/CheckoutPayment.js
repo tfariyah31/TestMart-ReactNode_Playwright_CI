@@ -19,6 +19,8 @@ import {
 } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
+import API_URL from '../config';
+
 
 // ── Stripe publishable key ────────────────────────────────────────────────────
 
@@ -63,8 +65,9 @@ function PaymentForm({ cartTotal, onSuccess, onError }) {
   const createIntent = async () => {
     try {
       const token = localStorage.getItem('accessToken');
-      const apiUrl = process.env.REACT_APP_API_URL || '';
-      const res = await fetch(`${apiUrl}/api/payments/create-intent`, {
+    
+      const res = await fetch(`${API_URL}/api/payments/create-intent`, {
+
       //const res = await fetch('/api/payments/create-intent', {
         method: 'POST',
         headers: {

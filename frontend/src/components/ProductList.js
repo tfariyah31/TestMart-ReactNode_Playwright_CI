@@ -10,6 +10,7 @@ import AddBoxIcon from '@mui/icons-material/AddBox';
 import Navbar from './Navbar';
 import { getRole } from '../utils/auth';
 import { addToCart } from '../utils/cart';
+import API_URL from '../config';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -23,7 +24,8 @@ const ProductList = () => {
     const fetchProducts = async () => {
       const token = localStorage.getItem('accessToken');
       try {
-        const res = await axios.get('http://127.0.0.1:5001/api/products', {
+        
+        const res = await axios.get(`${API_URL}/api/products`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const productsData = Array.isArray(res.data) ? res.data : res.data.products || [];

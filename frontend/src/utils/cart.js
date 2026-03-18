@@ -1,4 +1,7 @@
 const CART_KEY = 'cart_items';
+const notifyCartUpdate = () => {
+  window.dispatchEvent(new Event('cartUpdated'));
+};
 
 export const getCart = () => {
   try {
@@ -17,11 +20,13 @@ export const addToCart = (product) => {
     cart.push({ ...product, quantity: 1, price: product.price || 29.99 });
   }
   localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  notifyCartUpdate();
 };
 
 export const removeFromCart = (productId) => {
   const cart = getCart().filter((item) => item._id !== productId);
   localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  notifyCartUpdate();
 };
 
 export const updateQuantity = (productId, quantity) => {
@@ -29,6 +34,7 @@ export const updateQuantity = (productId, quantity) => {
     item._id === productId ? { ...item, quantity } : item
   );
   localStorage.setItem(CART_KEY, JSON.stringify(cart));
+  notifyCartUpdate();
 };
 
 export const clearCart = () => {
@@ -37,4 +43,5 @@ export const clearCart = () => {
 
 export const getCartCount = () => {
   return getCart().reduce((sum, item) => sum + item.quantity, 0);
+  notifyCartUpdate();
 };

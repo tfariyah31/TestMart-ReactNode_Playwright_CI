@@ -35,11 +35,11 @@ const Navbar = () => {
 
   // Poll every second to catch same-tab cart updates
   useEffect(() => {
-  const handleStorage = () => {
+  const handleCartUpdate = () => {
     if (role === 'customer') setCartCount(getCartCount());
   };
-  window.addEventListener('storage', handleStorage);
-  return () => window.removeEventListener('storage', handleStorage);
+  window.addEventListener('cartUpdated', handleCartUpdate);
+  return () => window.removeEventListener('cartUpdated', handleCartUpdate);
 }, [role]);
 
   return (

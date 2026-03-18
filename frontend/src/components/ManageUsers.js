@@ -13,6 +13,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
 import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import API_URL from '../config';
 
 const roleColors = {
   superadmin: { bg: '#ede9fe', color: '#7c3aed' },
@@ -40,7 +41,7 @@ const ManageUsers = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://127.0.0.1:5001/api/users', {
+      const res = await axios.get(`${API_URL}/api/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = Array.isArray(res.data) ? res.data : res.data.users || [];
@@ -91,7 +92,7 @@ const ManageUsers = () => {
     setSaving(true);
     try {
       await axios.put(
-        `http://127.0.0.1:5001/api/users/${editUser._id || editUser.id}`,
+        `${API_URL}/api/users/${editUser._id || editUser.id}`,
         { name: editForm.name.trim(), email: editForm.email.trim(), role: editForm.role, isBlocked: editForm.isBlocked },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -109,7 +110,7 @@ const ManageUsers = () => {
   const handleToggleBlock = async (user) => {
     try {
       await axios.put(
-        `http://127.0.0.1:5001/api/users/${user._id || user.id}`,
+        `${API_URL}/api/users/${user._id || user.id}`,
         { isBlocked: !user.isBlocked },
         { headers: { Authorization: `Bearer ${token}` } }
       );

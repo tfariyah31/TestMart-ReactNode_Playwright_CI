@@ -9,6 +9,7 @@ import {
   Paper, 
   Alert 
 } from '@mui/material';
+import API_URL from '../config';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -51,7 +52,8 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://127.0.0.1:5001/api/register', {
+      const response = await fetch(`${API_URL}/api/register`, {
+      
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -24,7 +24,7 @@ const processQueue = (error, token = null) => {
 // CREATE AXIOS INSTANCE
 // ============================================================================
 const api = axios.create({
-    baseURL: 'http://localhost:5001/api',
+    baseURL: `${process.env.REACT_APP_API_URL || 'http://127.0.0.1:5001'}/api`,
     headers: { 'Content-Type': 'application/json' }
 });
 
@@ -71,7 +71,7 @@ api.interceptors.response.use(
             try {
                 // Attempt to refresh the token
                 const refreshToken = localStorage.getItem('refreshToken');
-                const response = await axios.post('http://localhost:5001/api/auth/refresh', { 
+                const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://127.0.0.1:5001'}/api/auth/refresh`, {
                     refreshToken 
                 });
 

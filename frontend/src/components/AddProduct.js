@@ -9,6 +9,7 @@ import {
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ImageIcon from '@mui/icons-material/Image';
 import axios from 'axios';
+import API_URL from '../config';
 
 const initialForm = {
   name: '',
@@ -59,7 +60,7 @@ const AddProduct = () => {
     try {
       const token = localStorage.getItem('accessToken');
       await axios.post(
-        'http://127.0.0.1:5001/api/products',
+        `${API_URL}/api/products`,
         {
           name: form.name.trim(),
           description: form.description.trim(),
