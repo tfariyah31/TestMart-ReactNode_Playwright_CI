@@ -233,13 +233,13 @@ const ManageUsers = () => {
                         {/* Actions */}
                         <TableCell align="right">
                           <Tooltip title="Edit user">
-                            <IconButton size="small" onClick={() => openEdit(user)} sx={{ color: '#7c3aed', mr: 0.5 }}>
+                            <IconButton size="small" onClick={() => openEdit(user)} sx={{ color: '#7c3aed', mr: 0.5 }} data-testid="edit-user-button">
                               <EditIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title={user.isBlocked ? 'Unblock user' : 'Block user'}>
                             <IconButton size="small" onClick={() => handleToggleBlock(user)}
-                              sx={{ color: user.isBlocked ? '#047857' : '#dc2626' }}>
+                              sx={{ color: user.isBlocked ? '#047857' : '#dc2626' }} data-testid="toggle-block-button">
                               {user.isBlocked ? <CheckCircleIcon fontSize="small" /> : <BlockIcon fontSize="small" />}
                             </IconButton>
                           </Tooltip>
@@ -309,11 +309,11 @@ const ManageUsers = () => {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
           <Button onClick={closeEdit} disabled={saving}
-            sx={{ borderColor: '#e2e8f0', color: '#64748b', textTransform: 'none' }} variant="outlined">
+            sx={{ borderColor: '#e2e8f0', color: '#64748b', textTransform: 'none' }} variant="outlined" data-testid="cancel-edit-button">
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving} variant="contained"
-            sx={{ background: '#7c3aed', textTransform: 'none', fontWeight: 600, px: 3, '&:hover': { background: '#6d28d9' } }}>
+            sx={{ background: '#7c3aed', textTransform: 'none', fontWeight: 600, px: 3, '&:hover': { background: '#6d28d9' } }} data-testid="save-changes-button">
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </DialogActions>

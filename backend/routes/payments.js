@@ -50,11 +50,12 @@ router.post('/create-intent', protect, async (req, res) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents,
       currency: currency.toLowerCase(),
+      payment_method_types: ['card'],
       metadata: {
         userId: req.userId,
         userRole: req.userRole || 'unknown',
       },
-      automatic_payment_methods: { enabled: true },
+      //automatic_payment_methods: { enabled: true },
   });
     return res.status(200).json({
       clientSecret: paymentIntent.client_secret,

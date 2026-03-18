@@ -53,6 +53,7 @@ const SuperAdminDashboard = () => {
               startIcon={<AddBoxIcon />}
               onClick={() => navigate('/add-product')}
               sx={{ background: '#7c3aed', textTransform: 'none', '&:hover': { background: '#6d28d9' } }}
+              data-testid="add-product-button"
             >
               Add Product
             </Button>
@@ -61,6 +62,7 @@ const SuperAdminDashboard = () => {
               startIcon={<PeopleAltIcon />}
               onClick={() => navigate('/admin')}
               sx={{ borderColor: '#7c3aed', color: '#7c3aed', textTransform: 'none' }}
+              data-testid="manage-users-button"
             >
               Manage Users
             </Button>
@@ -123,10 +125,10 @@ const SuperAdminDashboard = () => {
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 {[
-                  { label: 'View All Products', path: '/products', color: '#0f172a' },
-                  { label: 'Add New Product', path: '/add-product', color: '#7c3aed' },
-                  { label: 'Manage Users', path: '/admin', color: '#0369a1' },
-                  { label: 'View Orders', path: '/orders', color: '#047857' },
+                  { label: 'View All Products', path: '/products', color: '#0f172a', dataTestId: 'view-all-products-button' },
+                  { label: 'Add New Product', path: '/add-product', color: '#7c3aed', dataTestId: 'add-new-product-button' },
+                  { label: 'Manage Users', path: '/admin', color: '#0369a1', dataTestId: 'manage-users-quick-button' },
+                  { label: 'View Orders', path: '/orders', color: '#047857', dataTestId: 'view-orders-button' },
                 ].map((action) => (
                   <Button
                     key={action.label}
@@ -138,6 +140,7 @@ const SuperAdminDashboard = () => {
                       borderColor: '#e2e8f0', color: action.color, fontWeight: 600,
                       '&:hover': { borderColor: action.color, background: `${action.color}08` }
                     }}
+                    data-testid={action.dataTestId}
                   >
                     {action.label}
                   </Button>

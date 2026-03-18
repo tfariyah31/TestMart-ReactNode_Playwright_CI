@@ -84,7 +84,7 @@ const Login = () => {
           </Alert>
         )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-testid="login-form">
             <TextField
               label="Email"
               type="email"
@@ -93,6 +93,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              inputProps={{ 'data-testid': 'login-email' }}
             />
             <TextField
               label="Password"
@@ -102,6 +103,7 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              inputProps={{ 'data-testid': 'login-password' }}
             />
             <Button
               type="submit"
@@ -110,6 +112,7 @@ const Login = () => {
               fullWidth
               sx={{ mt: 2 }}
               disabled={attemptsLeft === 0}
+              data-testid="login-submit"
             >
               {attemptsLeft === 0 ? 'Try again later' : 'Login'}
             </Button>

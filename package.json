@@ -1,5 +1,5 @@
 {
-  "name": "simplewebapp",
+  "name": "testmart",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,7 +9,9 @@
     "build-frontend": "cd frontend && npm run build",
     "test": "playwright test",
     "test:api": "playwright test --project=api",
-    "test:e2e": "playwright test --project=e2e",
+    "test:e2e": "playwright test --project=e2e:journey --project=e2e:auth --project=e2e:customer --project=e2e:merchant --project=e2e:superadmin",
+    "test:journey": "playwright test --project=e2e:journey",
+    "test:headed": "playwright test --project=e2e:journey --headed",
     "test:report": "playwright show-report tests/playwright-report"
   },
   "keywords": [],

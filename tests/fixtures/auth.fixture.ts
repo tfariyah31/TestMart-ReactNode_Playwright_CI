@@ -19,7 +19,10 @@ export interface SessionData {
  * For blocked/locked users, use TEST_USERS directly in tests.
  */
 export function getSession(role: 'superadmin' | 'merchant' | 'customer'): SessionData {
-  const sessionFile = path.join(SESSION_DIR, `${role}.json`);
+  // global.setup.ts writes <role>.api.json (raw tokens for API tests) and
+  // <role>.state.json (Playwright storageState for E2E browser contexts).
+  // API test helpers always read the .api.json file.
+  const sessionFile = path.join(SESSION_DIR, `${role}.api.json`);
 
   if (!fs.existsSync(sessionFile)) {
     throw new Error(

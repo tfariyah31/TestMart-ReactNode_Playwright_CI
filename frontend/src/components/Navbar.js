@@ -35,13 +35,12 @@ const Navbar = () => {
 
   // Poll every second to catch same-tab cart updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (role === 'customer') {
-        setCartCount(getCartCount());
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [role]);
+  const handleStorage = () => {
+    if (role === 'customer') setCartCount(getCartCount());
+  };
+  window.addEventListener('storage', handleStorage);
+  return () => window.removeEventListener('storage', handleStorage);
+}, [role]);
 
   return (
     <AppBar position="sticky" sx={{ background: '#0f172a', boxShadow: '0 1px 0 rgba(255,255,255,0.08)' }}>
@@ -56,19 +55,19 @@ const Navbar = () => {
 
         {/* Nav Links */}
         <Box sx={{ display: 'flex', gap: 1, flexGrow: 1 }}>
-          <Button component={Link} to="/dashboard" sx={{ color: '#94a3b8', textTransform: 'none', '&:hover': { color: '#fff' } }}>
+          <Button component={Link} to="/dashboard" sx={{ color: '#94a3b8', textTransform: 'none', '&:hover': { color: '#fff' } }} data-testid="dashboard-link">
             Dashboard
           </Button>
-          <Button component={Link} to="/products" sx={{ color: '#94a3b8', textTransform: 'none', '&:hover': { color: '#fff' } }}>
+          <Button component={Link} to="/products" sx={{ color: '#94a3b8', textTransform: 'none', '&:hover': { color: '#fff' } }} data-testid="products-link">
             Products
           </Button>
           {(role === 'superadmin' || role === 'merchant') && (
-            <Button component={Link} to="/add-product" sx={{ color: '#f59e0b', textTransform: 'none', fontWeight: 600, '&:hover': { color: '#fbbf24' } }}>
+            <Button component={Link} to="/add-product" sx={{ color: '#f59e0b', textTransform: 'none', fontWeight: 600, '&:hover': { color: '#fbbf24' } }} data-testid="add-product-link">
               + Add Product
             </Button>
           )}
           {role === 'superadmin' && (
-            <Button component={Link} to="/admin" sx={{ color: '#a78bfa', textTransform: 'none', '&:hover': { color: '#c4b5fd' } }}>
+            <Button component={Link} to="/admin" sx={{ color: '#a78bfa', textTransform: 'none', '&:hover': { color: '#c4b5fd' } }} data-testid="admin-panel-link">
               Admin Panel
             </Button>
           )}
@@ -79,6 +78,7 @@ const Navbar = () => {
           <IconButton
             onClick={() => navigate('/cart')}
             sx={{ color: '#fff', mr: 1, '&:hover': { background: 'rgba(255,255,255,0.08)' } }}
+            data-testid="cart-button"
           >
             <Badge
               badgeContent={cartCount}
@@ -116,6 +116,7 @@ const Navbar = () => {
           size="small"
           onClick={() => logout(navigate)}
           sx={{ color: '#f87171', borderColor: '#f87171', textTransform: 'none', '&:hover': { background: '#f871711a' } }}
+          data-testid="logout-button"
         >
           Logout
         </Button>

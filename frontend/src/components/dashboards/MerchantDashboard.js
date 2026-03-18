@@ -49,6 +49,7 @@ const MerchantDashboard = () => {
             startIcon={<AddBoxIcon />}
             onClick={() => navigate('/add-product')}
             sx={{ ml: 'auto', background: '#0369a1', textTransform: 'none', fontWeight: 600, '&:hover': { background: '#0284c7' } }}
+            data-testid="add-product-button"
           >
             Add Product
           </Button>
@@ -82,7 +83,7 @@ const MerchantDashboard = () => {
                   <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: "'Syne', sans-serif" }}>
                     Top Products
                   </Typography>
-                  <Button size="small" onClick={() => navigate('/products')} sx={{ textTransform: 'none', color: '#0369a1' }}>
+                  <Button size="small" onClick={() => navigate('/products')} sx={{ textTransform: 'none', color: '#0369a1' }} data-testid="view-all-products-button">
                     View All
                   </Button>
                 </Box>
@@ -116,9 +117,9 @@ const MerchantDashboard = () => {
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 {[
-                  { label: '+ Add New Product', path: '/add-product', color: '#0369a1', variant: 'contained' },
-                  { label: 'View My Products', path: '/products', color: '#0369a1', variant: 'outlined' },
-                  { label: 'View Orders', path: '/orders', color: '#047857', variant: 'outlined' },
+                  { label: '+ Add New Product', path: '/add-product', color: '#0369a1', variant: 'contained', dataTestId: 'add-new-product-button' },
+                  { label: 'View My Products', path: '/products', color: '#0369a1', variant: 'outlined', dataTestId: 'view-my-products-button' },
+                  { label: 'View Orders', path: '/orders', color: '#047857', variant: 'outlined', dataTestId: 'view-orders-button' },
                 ].map((action) => (
                   <Button
                     key={action.label}
@@ -131,6 +132,7 @@ const MerchantDashboard = () => {
                         ? { background: action.color, '&:hover': { background: '#0284c7' } }
                         : { borderColor: '#bae6fd', color: action.color, '&:hover': { borderColor: action.color } })
                     }}
+                    data-testid={action.dataTestId}
                   >
                     {action.label}
                   </Button>

@@ -44,7 +44,7 @@ const CustomerDashboard = () => {
             <PersonIcon />
           </Avatar>
           <Box>
-            <Typography variant="h5" sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#0f172a' }}>
+            <Typography variant="h5" sx={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, color: '#0f172a' }} data-testid="dashboard-welcome">
               My Dashboard
             </Typography>
             <Typography variant="body2" color="text.secondary">Welcome back! Here's your shopping overview.</Typography>
@@ -54,6 +54,7 @@ const CustomerDashboard = () => {
             startIcon={<StorefrontIcon />}
             onClick={() => navigate('/products')}
             sx={{ ml: 'auto', background: '#047857', textTransform: 'none', fontWeight: 600, '&:hover': { background: '#065f46' } }}
+            data-testid="shop-now-button"
           >
             Shop Now
           </Button>
@@ -63,7 +64,7 @@ const CustomerDashboard = () => {
         <Grid container spacing={3} sx={{ mb: 4 }}>
           {stats.map((s) => (
             <Grid item xs={12} sm={6} md={3} key={s.label}>
-              <Card elevation={0} sx={{ border: '1px solid #bbf7d0', borderRadius: 3 }}>
+              <Card elevation={0} sx={{ border: '1px solid #bbf7d0', borderRadius: 3 }} data-testid="dashboard-stats">
                 <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Avatar sx={{ background: s.bg, color: s.color, width: 48, height: 48 }}>
                     {s.icon}
@@ -115,10 +116,10 @@ const CustomerDashboard = () => {
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 {[
-                  { label: '🛒 View Cart', path: '/cart', color: '#047857', variant: 'contained' },
-                  { label: '🛍️ Browse Products', path: '/products', color: '#047857', variant: 'outlined' },
-                  { label: '❤️ My Wishlist', path: '/wishlist', color: '#be185d', variant: 'outlined' },
-                  { label: '📦 Track Orders', path: '/orders', color: '#0369a1', variant: 'outlined' },
+                  { label: '🛒 View Cart', path: '/cart', color: '#047857', variant: 'contained', dataTestId: 'view-cart-button' },
+                  { label: '🛍️ Browse Products', path: '/products', color: '#047857', variant: 'outlined', dataTestId: 'browse-products-button' },
+                  { label: '❤️ My Wishlist', path: '/wishlist', color: '#be185d', variant: 'outlined', dataTestId: 'my-wishlist-button' },
+                  { label: '📦 Track Orders', path: '/orders', color: '#0369a1', variant: 'outlined', dataTestId: 'track-orders-button' },
                 ].map((action) => (
                   <Button
                     key={action.label}
@@ -131,6 +132,7 @@ const CustomerDashboard = () => {
                         ? { background: action.color, '&:hover': { background: '#065f46' } }
                         : { borderColor: '#bbf7d0', color: action.color, '&:hover': { borderColor: action.color } })
                     }}
+                    data-testid={action.dataTestId}
                   >
                     {action.label}
                   </Button>

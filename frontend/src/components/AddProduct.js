@@ -109,6 +109,7 @@ const AddProduct = () => {
             variant="outlined"
             onClick={() => navigate('/products')}
             sx={{ ml: 'auto', borderColor: '#e2e8f0', color: '#64748b', textTransform: 'none' }}
+            data-testid="back-button"
           >
             ← Back to Products
           </Button>
@@ -249,6 +250,7 @@ const AddProduct = () => {
                 onClick={handleReset}
                 disabled={loading}
                 sx={{ borderColor: '#e2e8f0', color: '#64748b', textTransform: 'none', px: 3 }}
+                data-testid="reset-button"
               >
                 Reset
               </Button>
@@ -260,6 +262,7 @@ const AddProduct = () => {
                   background: '#0369a1', textTransform: 'none', fontWeight: 600, px: 4,
                   '&:hover': { background: '#0284c7' }
                 }}
+                data-testid="add-product-button"
               >
                 {loading ? 'Adding Product...' : 'Add Product'}
               </Button>

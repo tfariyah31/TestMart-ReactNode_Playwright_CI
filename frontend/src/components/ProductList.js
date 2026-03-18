@@ -70,6 +70,7 @@ const ProductList = () => {
               startIcon={<AddBoxIcon />}
               onClick={() => navigate('/add-product')}
               sx={{ background: role === 'super_admin' ? '#7c3aed' : '#0369a1', textTransform: 'none', fontWeight: 600 }}
+              data-testid="add-product-button"
             >
               Add Product
             </Button>
@@ -78,10 +79,10 @@ const ProductList = () => {
 
         {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-        <Grid container spacing={3}>
+        <Grid container spacing={3} data-testid="product-list">
           {products.map((product) => (
             <Grid item key={product._id} xs={12} sm={6} md={4}>
-              <Card elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Card elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: 3, height: '100%', display: 'flex', flexDirection: 'column' }} data-testid={`product-card-${product._id}`}>
                 <CardMedia
                   component="img"
                   height="160"
@@ -116,6 +117,7 @@ const ProductList = () => {
                       startIcon={<AddShoppingCartIcon />}
                       onClick={() => handleAddToCart(product)}
                       sx={{ background: '#047857', textTransform: 'none', fontWeight: 600, '&:hover': { background: '#065f46' } }}
+                      data-testid="add-to-cart-button"
                     >
                       Add to Cart
                     </Button>
@@ -128,6 +130,7 @@ const ProductList = () => {
                       variant="outlined"
                       onClick={() => navigate(`/edit-product/${product._id}`)}
                       sx={{ borderColor: '#0369a1', color: '#0369a1', textTransform: 'none', fontWeight: 600 }}
+                      data-testid="edit-product-button"
                     >
                       Edit Product
                     </Button>
@@ -142,6 +145,7 @@ const ProductList = () => {
                         startIcon={<AddShoppingCartIcon />}
                         onClick={() => handleAddToCart(product)}
                         sx={{ background: '#047857', textTransform: 'none', fontSize: '0.75rem', '&:hover': { background: '#065f46' } }}
+                        data-testid="add-to-cart-button"
                       >
                         Add to Cart
                       </Button>
@@ -150,6 +154,7 @@ const ProductList = () => {
                         variant="outlined"
                         onClick={() => navigate(`/edit-product/${product._id}`)}
                         sx={{ borderColor: '#7c3aed', color: '#7c3aed', textTransform: 'none', fontSize: '0.75rem' }}
+                        data-testid="edit-product-button"
                       >
                         Edit
                       </Button>

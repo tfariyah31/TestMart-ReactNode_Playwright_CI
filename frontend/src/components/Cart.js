@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import {
@@ -49,9 +49,23 @@ const Cart = () => {
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
+  const handlePaymentSuccess = useCallback((paymentIntent) => {
+    handleCheckout();
+  }, []);
+
+  const handlePaymentError = useCallback((msg) => {
+  console.error('Payment failed:', msg);
+}, []);
+
+<CheckoutPayment
+  key="checkout-payment-stable"
+  cartTotal={total}
+  onSuccess={handlePaymentSuccess}
+  onError={handlePaymentError}
+/>
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#f0fdf4' }}>
+    <Box sx={{ minHeight: '100vh', background: '#f0fdf4' }} data-testid="cart-container">
       <Navbar />
       <Container maxWidth="lg" sx={{ py: 4 }}>
 
@@ -72,6 +86,7 @@ const Cart = () => {
             variant="outlined"
             onClick={() => navigate('/products')}
             sx={{ ml: 'auto', borderColor: '#bbf7d0', color: '#047857', textTransform: 'none' }}
+            data-testid="continue-shopping-button"
           >
             ← Continue Shopping
           </Button>
@@ -86,6 +101,7 @@ const Cart = () => {
               variant="contained"
               onClick={() => navigate('/products')}
               sx={{ mt: 2, background: '#047857', textTransform: 'none', '&:hover': { background: '#065f46' } }}
+              data-testid="browse-products-button"
             >
               Browse Products
             </Button>
@@ -99,7 +115,7 @@ const Cart = () => {
             <Grid item xs={12} md={8}>
               <Card elevation={0} sx={{ border: '1px solid #bbf7d0', borderRadius: 3 }}>
                 {cartItems.map((item, index) => (
-                  <Box key={item._id}>
+                  <Box key={item._id} data-testid={`cart-item-${item._id}`}>
                     <Box sx={{ display: 'flex', gap: 2, p: 2, alignItems: 'center' }}>
                       {/* Product Image */}
                       <CardMedia
@@ -124,6 +140,7 @@ const Cart = () => {
                           size="small"
                           onClick={() => handleQuantity(item._id, item.quantity - 1)}
                           sx={{ border: '1px solid #bbf7d0', width: 28, height: 28 }}
+                          data-testid="quantity-decrease"
                         >
                           <RemoveIcon fontSize="small" />
                         </IconButton>
@@ -134,6 +151,7 @@ const Cart = () => {
                           size="small"
                           onClick={() => handleQuantity(item._id, item.quantity + 1)}
                           sx={{ border: '1px solid #bbf7d0', width: 28, height: 28 }}
+                          data-testid="quantity-increase"
                         >
                           <AddIcon fontSize="small" />
                         </IconButton>
@@ -149,6 +167,7 @@ const Cart = () => {
                         size="small"
                         onClick={() => handleRemove(item._id)}
                         sx={{ color: '#f87171', flexShrink: 0 }}
+                        data-testid="remove-item"
                       >
                         <DeleteOutlineIcon />
                       </IconButton>
@@ -184,22 +203,22 @@ const Cart = () => {
                   <Divider sx={{ my: 2 }} />
 
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                    <Typography variant="body1" fontWeight={700}>Total</Typography>
-                    <Typography variant="body1" fontWeight={700} color="#047857">${total.toFixed(2)}</Typography>
+                    <Typography variant="body1" fontWeight={700} >Total</Typography>
+                    <Typography variant="body1" fontWeight={700} color="#047857" data-testid="cart-total">${total.toFixed(2)}</Typography>
                   </Box>
 
                   <CheckoutPayment
+                    key="checkout-payment-stable"
                     cartTotal={total}
-                    onSuccess={(paymentIntent) => {
-                    handleCheckout();
-                    }}
-                    onError={(msg) => console.error('Payment failed:', msg)}
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
                   />
                   <Button
                     fullWidth
                     variant="text"
                     onClick={() => { clearCart(); refresh(); }}
                     sx={{ mt: 1, color: '#f87171', textTransform: 'none', fontSize: '0.8rem' }}
+                    data-testid="clear-cart-button"
                   >
                     Clear Cart
                   </Button>

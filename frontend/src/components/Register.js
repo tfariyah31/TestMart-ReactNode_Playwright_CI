@@ -101,7 +101,7 @@ const Register = () => {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-testid="register-form">
             <TextField
               label="Full Name"
               name="name"
@@ -153,6 +153,7 @@ const Register = () => {
               fullWidth
               sx={{ mt: 3, mb: 2 }}
               disabled={loading}
+              data-testid="register-button"
             >
               {loading ? 'Registering...' : 'Register'}
             </Button>
@@ -160,7 +161,7 @@ const Register = () => {
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="body2">
                 Already have an account?{' '}
-                <Link to="/login" style={{ textDecoration: 'none', color: '#1976d2' }}>
+                <Link to="/login" style={{ textDecoration: 'none', color: '#1976d2' }} data-testid="login-link">
                   Login here
                 </Link>
               </Typography>

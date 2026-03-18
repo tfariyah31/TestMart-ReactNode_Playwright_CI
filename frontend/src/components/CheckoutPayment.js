@@ -1,11 +1,4 @@
-// frontend/src/components/CheckoutPayment.jsx
-// Requires: npm install @stripe/react-stripe-js @stripe/stripe-js
-//
-// Usage in your Cart / Order Summary page:
-//   import CheckoutPayment from './CheckoutPayment';
-//   <CheckoutPayment cartTotal={subtotal + tax} onSuccess={handleOrderPlaced} />
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -13,6 +6,7 @@ import {
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
+
 import {
   Box,
   Button,
@@ -27,7 +21,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 
 // ── Stripe publishable key ────────────────────────────────────────────────────
-// Add REACT_APP_STRIPE_PUBLISHABLE_KEY to your frontend .env
+
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 // ── Card Element styling to match MUI theme ───────────────────────────────────
@@ -44,8 +38,8 @@ const CARD_ELEMENT_OPTIONS = {
   },
 };
 
-// ── Inner form (must be inside <Elements>) ────────────────────────────────────
 function PaymentForm({ cartTotal, onSuccess, onError }) {
+
   const stripe = useStripe();
   const elements = useElements();
 
@@ -54,45 +48,56 @@ function PaymentForm({ cartTotal, onSuccess, onError }) {
   const [message, setMessage] = useState('');
   const [severity, setSeverity] = useState('info');
 
-  // Step 1 — fetch a PaymentIntent from your backend when the component mounts
+  const intentCreatedRef = useRef(false);
+  const clientSecretRef  = useRef('');
+
+  // Step 1 — fetch a PaymentIntent from backend 
   useEffect(() => {
-    const createIntent = async () => {
-      try {
-        const token = localStorage.getItem('accessToken'); // adjust to your auth storage key
-        const res = await fetch('/api/payments/create-intent', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ amount: cartTotal }),
-        });
+    if (intentCreatedRef.current) {
 
-        const data = await res.json();
+      setClientSecret(clientSecretRef.current);
+    return;
+  }
+  intentCreatedRef.current = true;
 
-        if (!res.ok) throw new Error(data.message || 'Failed to initialise payment');
+  const createIntent = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const res = await fetch('/api/payments/create-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ amount: cartTotal }),
+      });
 
-        setClientSecret(data.clientSecret);
-      } catch (err) {
-        setSeverity('error');
-        setMessage(err.message);
-        if (onError) onError(err.message);
-      }
-    };
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to initialise payment');
 
-    if (cartTotal > 0) createIntent();
-  }, [cartTotal]);
+      clientSecretRef.current = data.clientSecret;  
+      setClientSecret(data.clientSecret);
+    } catch (err) {
+      setSeverity('error');
+      setMessage(err.message);
+      if (onError) onError(err.message);
+    }
+  };
+
+  if (cartTotal > 0) createIntent();
+}, [cartTotal]);
 
   // Step 2 — confirm payment on form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!stripe || !elements || !clientSecret) return;
 
     setLoading(true);
     setMessage('');
 
-    const cardElement = elements.getElement(CardElement);
-
+    const cardElement = elements?.getElement(CardElement);
+  
     const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
       payment_method: { card: cardElement },
     });
@@ -115,7 +120,7 @@ function PaymentForm({ cartTotal, onSuccess, onError }) {
 
   return (
     <Box component="form" onSubmit={handleSubmit} data-testid="payment-form">
-      {/* Test card hint — remove in production */}
+      {/* Test card hint */}
       <Alert severity="info" sx={{ mb: 2 }} data-testid="test-card-hint">
         <strong>Test mode:</strong> Use card <code>4242 4242 4242 4242</code>, any future
         expiry, any CVC.
@@ -173,8 +178,8 @@ function PaymentForm({ cartTotal, onSuccess, onError }) {
   );
 }
 
-// ── Public wrapper — wraps form in Stripe Elements provider ──────────────────
-export default function CheckoutPayment({ cartTotal = 0, onSuccess, onError }) {
+// ── Public wrapper 
+const CheckoutPayment = React.memo(function CheckoutPayment({ cartTotal = 0, onSuccess, onError }) {
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 480, mx: 'auto', borderRadius: 3 }}>
       <Typography variant="h6" fontWeight={700} gutterBottom>
@@ -185,4 +190,6 @@ export default function CheckoutPayment({ cartTotal = 0, onSuccess, onError }) {
       </Elements>
     </Paper>
   );
-}
+});
+
+export default CheckoutPayment;
