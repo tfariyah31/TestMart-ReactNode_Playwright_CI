@@ -7,13 +7,13 @@ on:
     branches: [main, develop]
 
 jobs:
+
   # ---------------------------------------------------------------------------
   # Job 1 — Backend checks
   # ---------------------------------------------------------------------------
   backend:
     name: Backend
     runs-on: ubuntu-latest
-
     services:
       mongodb:
         image: mongo:6
@@ -24,32 +24,26 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     env:
       PORT: 5001
       MONGO_URI: mongodb://localhost:27017/testmart_ci
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       REFRESH_SECRET: ${{ secrets.REFRESH_SECRET }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - name: Install backend dependencies
         working-directory: backend
         run: npm ci
-
       - name: Start backend server
         working-directory: backend
         run: node server.js &
-
       - name: Wait for backend to be ready
         run: npx wait-on http://127.0.0.1:5001/api/health --timeout 30000
 
@@ -60,7 +54,6 @@ jobs:
     name: Playwright API Tests
     runs-on: ubuntu-latest
     needs: backend
-
     services:
       mongodb:
         image: mongo:6
@@ -71,14 +64,93 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     env:
       PORT: 5001
       MONGO_URI: mongodb://localhost:27017/testmart_ci
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       REFRESH_SECRET: ${{ secrets.REFRESH_SECRET }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install root (Playwright) dependencies
+        run: npm ci
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Start backend server
+        working-directory: backend
+        run: node server.js &
+      - name: Wait for backend to be ready
+        run: npx wait-on http://127.0.0.1:5001/api/health --timeout 30000
+      - name: Seed test users
+        working-directory: backend
+        run: node seedUser.js
+      - name: Run Playwright API tests
+        run: npm run test:api
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-api-report
+          path: tests/playwright-report/
+          retention-days: 14
 
+  # ---------------------------------------------------------------------------
+  # Job 3 — Frontend build check
+  # ---------------------------------------------------------------------------
+  frontend:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+        env:
+          CI: false
+          REACT_APP_STRIPE_PUBLISHABLE_KEY: ${{ secrets.REACT_APP_STRIPE_PUBLISHABLE_KEY }}
+
+  # ---------------------------------------------------------------------------
+  # Job 4 — E2E Customer Journey
+  # ---------------------------------------------------------------------------
+  e2e-journey:
+    name: E2E Customer Journey
+    runs-on: ubuntu-latest
+    # Requires both backend and frontend to be healthy before starting.
+    # Frontend build job confirms the bundle compiles — this job starts
+    # both servers fresh so they run together in the same environment.
+    needs: [backend, frontend]
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PORT: 5001
+      MONGO_URI: mongodb://localhost:27017/testmart_ci
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      REFRESH_SECRET: ${{ secrets.REFRESH_SECRET }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -89,6 +161,7 @@ jobs:
           node-version: 20
           cache: npm
 
+      # ── Install all dependencies ──────────────────────────────────────────
       - name: Install root (Playwright) dependencies
         run: npm ci
 
@@ -96,7 +169,17 @@ jobs:
         working-directory: backend
         run: npm ci
 
-      - name: Start backend server
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # ── Install Playwright browser (Chromium only — E2E journey uses it) ──
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      # ── Seed database ─────────────────────────────────────────────────────
+      # Backend must be running briefly to seed, then we restart it cleanly
+      - name: Start backend for seeding
         working-directory: backend
         run: node server.js &
 
@@ -107,40 +190,53 @@ jobs:
         working-directory: backend
         run: node seedUser.js
 
-      - name: Run Playwright API tests
-        run: npm run test:api
+      - name: Seed products
+        working-directory: backend
+        run: node seedProducts.js
 
-      - name: Upload Playwright report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-api-report
-          path: tests/playwright-report/
-          retention-days: 14
-
-  # ---------------------------------------------------------------------------
-  # Job 3 — Frontend build check (no Stripe keys needed)
-  # ---------------------------------------------------------------------------
-  frontend:
-    name: Frontend Build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm ci
-
-      - name: Build frontend
+      # ── Build and serve frontend ──────────────────────────────────────────
+      # CRA dev server (npm start) is not suitable for CI — it takes too long
+      # and is unstable under headless conditions. We build and serve the
+      # static bundle instead using the `serve` package.
+      # The REACT_APP_STRIPE_PUBLISHABLE_KEY must be set at BUILD time —
+      # CRA bakes env vars into the bundle, they cannot be injected at runtime.
+      - name: Build frontend with Stripe key
         working-directory: frontend
         run: npm run build
         env:
           CI: false
+          REACT_APP_STRIPE_PUBLISHABLE_KEY: ${{ secrets.REACT_APP_STRIPE_PUBLISHABLE_KEY }}
+
+      - name: Install serve
+        run: npm install -g serve
+
+      - name: Serve frontend build
+        run: serve -s frontend/build -l 3000 &
+
+      - name: Wait for frontend to be ready
+        run: npx wait-on http://localhost:3000 --timeout 30000
+
+      # ── Run E2E journey test ──────────────────────────────────────────────
+      - name: Run E2E customer journey
+        run: npm run test:journey
+        env:
+          # Tell Playwright to run headless (it does by default in CI,
+          # but explicit is better than implicit)
+          CI: true
+
+      # ── Artifacts ─────────────────────────────────────────────────────────
+      - name: Upload E2E report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-e2e-report
+          path: tests/playwright-report/
+          retention-days: 14
+
+      - name: Upload E2E test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-e2e-results
+          path: test-results/
+          retention-days: 7
