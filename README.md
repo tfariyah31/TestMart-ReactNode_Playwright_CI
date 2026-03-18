@@ -9,7 +9,7 @@ A full-stack web application with a React frontend and Node.js backend, featurin
 - **Frontend:** React, Material-UI (MUI), React Router
 - **Backend:** Node.js, Express, MongoDB (Mongoose)
 - **Auth:** JWT (access + refresh tokens), bcryptjs
-- **Testing:** Playwright (end-to-end)
+- **Testing:** Playwright (API + end-to-end)
 - **CI/CD:** GitHub Actions
 
 ---
@@ -49,15 +49,14 @@ A full-stack web application with a React frontend and Node.js backend, featurin
 - Place orders after successful payment
 - Access customer dashboard with order history and wishlist overview
 
-
 #### Payment Integration
 - Integrated Stripe Sandbox for secure test payments
-- Customers can complete checkout using Stripe’s payment flow
+- Customers can complete checkout using Stripe's payment flow
 - Payment confirmation before order creation
 - Simulated real-world e-commerce payment processing
 - Supports testing with Stripe test cards
 - Designed to enable automated payment flow testing
-  
+
 ### Frontend & UI
 - Role-specific dashboards rendered automatically on login
 - Smart navbar with role badge and context-aware links
@@ -66,7 +65,8 @@ A full-stack web application with a React frontend and Node.js backend, featurin
 - Protected routes — unauthorized roles are redirected automatically
 
 ### DevOps & Quality Assurance
-- End-to-end test suite powered by Playwright
+- API test suite and end-to-end test suite powered by Playwright
+- Page Object Model (POM) architecture for maintainable E2E tests
 - CI/CD pipeline via GitHub Actions for automated testing and deployment
 
 ---
@@ -80,7 +80,6 @@ A full-stack web application with a React frontend and Node.js backend, featurin
 - [Git](https://git-scm.com/)
 
 ---
-
 
 ### 1. Clone the Repository
 
@@ -103,7 +102,9 @@ PORT=5001
 MONGO_URI=mongodb://localhost:27017/mywebapp
 JWT_SECRET=your_secret_key_here
 REFRESH_SECRET=your_refresh_secret
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
 ```
+
 > Replace `MONGO_URI` with your MongoDB Atlas connection string if using a cloud database.
 
 Start the backend server:
@@ -118,37 +119,72 @@ The backend will be available at `http://localhost:5001`.
 
 ```bash
 cd ../frontend
-npm install
+npm install --legacy-peer-deps
+```
+
+Create a `.env` file in the `frontend` folder:
+
+```env
+REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+```
+
+Start the frontend:
+
+```bash
 npm start
 ```
 
 The frontend will be available at `http://localhost:3000`.
 
 ---
-## **Project Structure**
+
+## Project Structure
+
 ```
 TestMart/
 ├── backend/
-│   ├── config/          
-│   ├── controllers/     
-│   ├── middleware/      
-│   ├── models/          
-│   ├── routes/          
-│   ├── server.js        
-│   └── .env             
+│   ├── config/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── server.js
+│   └── .env
 ├── frontend/
-│   ├── src/             
-│   ├── utils/             
-│   ├── App.js     
-│   └── ...              
+│   ├── src/
+│   │   ├── components/
+│   │   └── utils/
+│   ├── App.js
+│   └── .env
 ├── tests/
-│   ├── login.spec.js    
-├── package.json         
-├── playwright.config.js
-└── README.md            
+│   ├── api/                        ← API contract tests
+│   │   ├── auth.api.spec.ts
+│   │   ├── products.api.spec.ts
+│   │   ├── users.api.spec.ts
+│   │   └── payments.api.spec.ts
+│   ├── e2e/                        ← End-to-end UI tests
+│   │   ├── auth/
+│   │   │   └── login.spec.ts
+│   │   └── customer/
+│   │       └── customer-journey.spec.ts
+│   ├── fixtures/
+│   │   ├── auth.fixture.ts
+│   │   ├── page.fixture.ts         ← POM fixture wiring
+│   │   └── test-data.ts
+│   ├── pages/                      ← Page Object Models
+│   │   ├── LoginPage.ts
+│   │   ├── DashboardPage.ts
+│   │   ├── ProductsPage.ts
+│   │   ├── CartPage.ts
+│   │   └── CheckoutPage.ts
+│   └── global.setup.ts
+├── package.json
+├── playwright.config.ts
+└── README.md
 ```
 
 ---
+
 ## API Endpoints
 
 ### Auth — `/api/auth`
@@ -182,41 +218,103 @@ TestMart/
 
 ## Playwright Tests
 
-### API Tests Prerequisites
+### Prerequisites
 
-- Backend server running at `http://127.0.0.1:5001`
-- Test users seeded in MongoDB — run `npm run seed:test` if not done yet
+- Backend running at `http://127.0.0.1:5001`
+- Frontend running at `http://localhost:3000`
+- Test users seeded in MongoDB — run `npm run seed:test` from the backend directory
 
-## Running the Tests
+### Running the Tests
 
-Global setup (`tests/global.setup.ts`) runs **automatically** before the tests. It logs in as each role (`superadmin`, `merchant`, `customer`) and saves session tokens to `.sessions/` for reuse across all tests.
+Global setup (`tests/global.setup.ts`) runs automatically before the tests. It logs in as each role (`superadmin`, `merchant`, `customer`) and saves session tokens to `.sessions/` for reuse across all tests.
 
 ```bash
+# API tests only
 npm run test:api
+
+# E2E customer journey only
+npm run test:journey
+
+# All E2E tests
+npm run test:e2e
+
+# Open HTML report
+npm run test:report
 ```
-Re-run this any time your tokens expire or you reseed the database.
 
+---
 
-## Test Coverage
+## API Test Coverage
 
-| Spec file | Endpoints |
-|---|---|
+| Spec file | Endpoints covered |
+|-----------|------------------|
 | `auth.api.spec.ts` | `POST /api/auth/login`, `/register`, `/refresh`, `/logout` |
 | `users.api.spec.ts` | `GET /api/users`, `GET /api/users/:id`, `PUT /api/users/:id` |
 | `products.api.spec.ts` | `GET /api/products`, `GET /api/products/:id`, `POST`, `PUT`, `DELETE` |
+| `payments.api.spec.ts` | `POST /api/payments/create-intent` |
+
+---
+
+## E2E Test Coverage
+
+### Customer Journey (`tests/e2e/customer/customer-journey.spec.ts`)
+
+A single end-to-end test covering the full customer purchase flow using the Page Object Model pattern. Each step is a named `test.step()` block — the HTML report shows per-step pass/fail and a single trace file covers the entire journey.
+
+| Step | What is tested |
+|------|---------------|
+| Login | Customer logs in via the login form → redirected to `/dashboard`, `accessToken` and `userRole` written to `localStorage` |
+| Dashboard | Customer dashboard renders with welcome heading, stats, and quick action buttons |
+| Browse products | Navigates to `/products` via "Shop Now" button, product catalogue loads with at least one item |
+| Add to cart | Adds the first product, confirms snackbar notification, navigates to cart via Navbar |
+| Review cart | Cart item is present, order total is a valid dollar amount, Stripe payment form is rendered |
+| Checkout | Fills Stripe test card `4242 4242 4242 4242`, submits payment, confirms success message and order-placed snackbar, verifies redirect to `/products` and cart cleared from `localStorage` |
+
+**Test card used:** `4242 4242 4242 4242` — expiry `12/26`, CVC `424` (Stripe test mode, no real charge)
+
+### Login Tests (`tests/e2e/auth/login.spec.ts`)
+
+| ID | Scenario |
+|----|----------|
+| LGN-E2E-001 | Customer logs in and lands on `/dashboard` |
+| LGN-E2E-002 | Merchant logs in and lands on `/dashboard` |
+| LGN-E2E-003 | Super Admin logs in and lands on `/dashboard` |
+| LGN-E2E-004 | Wrong password shows inline error, stays on login page |
+| LGN-E2E-005 | Non-existent email shows inline error |
+| LGN-E2E-006 | Blocked user sees blocked-account error message |
+| LGN-E2E-007 | Empty form submit fires no network request |
+| LGN-E2E-008 | Locked-out user sees disabled "Try again later" button |
+| LGN-E2E-009 | Successful login writes `accessToken` and `userRole` to `localStorage` |
+| LGN-E2E-010 | Pre-authenticated user visiting `/` is redirected to `/dashboard` |
+
+---
+
+## Page Object Models
+
+All E2E interactions are encapsulated in POM classes under `tests/pages/`. Tests never access `page` directly for UI interactions — they call POM methods instead, keeping selectors and interaction logic in one place.
+
+| POM | Route | Responsibility |
+|-----|-------|---------------|
+| `LoginPage` | `/` | `goto()`, `login()`, `expectRedirectedToDashboard()`, `expectErrorVisible()` |
+| `DashboardPage` | `/dashboard` | `expectLoaded()`, `expectWelcomeHeading()`, `clickShopNow()` |
+| `ProductsPage` | `/products` | `waitForProducts()`, `addFirstProductToCart()`, `goToCartViaNavbar()` |
+| `CartPage` | `/cart` | `expectItemInCart()`, `getTotal()`, `expectPaymentFormVisible()` |
+| `CheckoutPage` | `/cart` | `fillStripeCard()`, `placeOrder()`, `expectPaymentSuccess()` |
+
+---
 
 ## Notes
 
-- Tests are **read-only safe** — any products created during testing are cleaned up via `afterAll`
-- Blocked/locked user credentials are available via `getCredentials('blockedUser')` in `fixtures/auth.fixture.ts` for scenario-specific tests
+- API tests are **read-only safe** — any products created during testing are cleaned up via `afterAll`
+- Blocked/locked user credentials are available via `getCredentials('blockedUser')` in `fixtures/auth.fixture.ts`
+- The E2E customer journey test starts from the login form (no `storageState`) to validate the full flow
+- Stripe Link is blocked at the DNS level in Playwright config to prevent authentication popups in headless runs
 
 ---
 
 ## Author
+
 **Tasnim Fariyah**
 
 [![GitHub](https://img.shields.io/badge/GitHub-tfariyah31-181717?logo=github)](https://github.com/tfariyah31)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-tasnim--fariyah-0A66C2?logo=linkedin)](https://www.linkedin.com/in/tasnim-fariyah/)
-
----
-
